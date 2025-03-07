@@ -20,8 +20,9 @@
 		]
 	},
 	"depends": {
-		"fabricloader": ">=0.15.3",
-		"minecraft": "~1.20.4",
+    "fabric": "${fabric_version_range}",
+    "minecraft": ">=${minecraft_version_min} <${minecraft_version_max}",
+		"fabricloader": "${fabric_loader_version_range}",
 		"java": ">=17",
 		"fabric-api": "*"
 	}
