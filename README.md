@@ -52,6 +52,23 @@ services:
 
 The mod now handles `Network is unreachable` errors gracefully by logging them once and suppressing further spam if host mode is not used.
 
+## Manual IP/Network Targeting
+
+If you cannot use host networking, you can manually specify target IP addresses or broadcast addresses in the configuration file. This is useful if your container can route to the LAN but auto-detection is failing.
+
+1. Start the server once to generate the config file: `config/lanannouncer.json`.
+2. Edit the file to add your target addresses:
+```json
+{
+  "extraAddresses": [
+    "192.168.1.255",
+    "192.168.1.10"
+  ]
+}
+```
+*   `192.168.1.255`: A directed broadcast address (reaches everyone on that subnet).
+*   `192.168.1.10`: A specific client's IP (unicast). Minecraft clients will recognize discovery packets sent directly to them.
+
 # Credits
 
 A majority of this project was created with the help of GPT-4.

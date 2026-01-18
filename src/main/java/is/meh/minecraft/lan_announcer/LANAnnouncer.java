@@ -18,10 +18,13 @@ public class LANAnnouncer implements ModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger("lan-announcer");
     private ServerAnnouncer ipv4Announcer;
     private ServerAnnouncer ipv6Announcer;
+    private final java.util.List<ServerAnnouncer> extraAnnouncers = new java.util.ArrayList<>();
+    private ModConfig config;
 
     @Override
     public void onInitialize() {
         if (FabricLoader.getInstance().getEnvironmentType() == net.fabricmc.api.EnvType.SERVER) {
+            config = ModConfig.load();
             ServerLifecycleEvents.SERVER_STARTED.register(this::onServerStarted);
             ServerLifecycleEvents.SERVER_STOPPING.register(this::onServerStopping);
         } else {
@@ -58,6 +61,20 @@ public class LANAnnouncer implements ModInitializer {
         } catch (UnknownHostException e) {
             LOGGER.error("Failed to resolve IPv6 multicast address", e);
         }
+
+        if (config != null && config.extraAddresses != null) {
+            for (String addressStr : config.extraAddresses) {
+                try {
+                    InetAddress address = InetAddress.getByName(addressStr);
+                    ServerAnnouncer announcer = new ServerAnnouncer(address, message);
+                    announcer.startAnnouncing();
+                    extraAnnouncers.add(announcer);
+                    LOGGER.info("Started extra announcer for: {}", addressStr);
+                } catch (UnknownHostException e) {
+                    LOGGER.error("Failed to resolve extra address: {}", addressStr, e);
+                }
+            }
+        }
     }
 
     private void onServerStopping(MinecraftServer server) {
@@ -67,6 +84,10 @@ public class LANAnnouncer implements ModInitializer {
         if (ipv6Announcer != null) {
             ipv6Announcer.stopAnnouncing();
         }
+        for (ServerAnnouncer announcer : extraAnnouncers) {
+            announcer.stopAnnouncing();
+        }
+        extraAnnouncers.clear();
     }
 
     private InetAddress getBroadcastAddress() {
