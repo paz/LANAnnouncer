@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.*;
 import java.util.Enumeration;
-import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -27,16 +26,15 @@ public class LANAnnouncer implements ModInitializer {
             ServerLifecycleEvents.SERVER_STOPPING.register(this::onServerStopping);
         } else {
             LOGGER.warn(
-                "This mod is only intended for dedicated multiplayer" +
-                " servers, not clients. Clients can start their own built-in" +
-                " LAN broadcast by using `Open to LAN`"
-            );
+                    "This mod is only intended for dedicated multiplayer" +
+                            " servers, not clients. Clients can start their own built-in" +
+                            " LAN broadcast by using `Open to LAN`");
         }
     }
 
     // Prevent conflicts with the packet payload
     private String sanitizeMOTD(String motd) {
-        return motd.replace("[", "").replace("]", "");
+        return motd.replace("[", "").replace("]", "").replace("\n", "-");
     }
 
     private void onServerStarted(MinecraftServer server) {
@@ -76,7 +74,8 @@ public class LANAnnouncer implements ModInitializer {
             Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
             while (interfaces.hasMoreElements()) {
                 NetworkInterface networkInterface = interfaces.nextElement();
-                if (networkInterface.isLoopback() || !networkInterface.isUp()) continue;
+                if (networkInterface.isLoopback() || !networkInterface.isUp())
+                    continue;
 
                 for (InterfaceAddress interfaceAddress : networkInterface.getInterfaceAddresses()) {
                     InetAddress broadcast = interfaceAddress.getBroadcast();
@@ -129,7 +128,8 @@ public class LANAnnouncer implements ModInitializer {
         }
 
         private void announce() {
-            if (!running) return;
+            if (!running)
+                return;
 
             try {
                 DatagramPacket packet = new DatagramPacket(message, message.length, address, 4445);
