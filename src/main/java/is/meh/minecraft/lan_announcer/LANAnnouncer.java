@@ -103,6 +103,7 @@ public class LANAnnouncer implements ModInitializer {
         private ScheduledExecutorService executorService;
         private boolean running;
         private final InetAddress address;
+        private boolean lastExecutionFailed = false;
 
         public ServerAnnouncer(InetAddress address, byte[] message) {
             this.address = address;
@@ -134,6 +135,17 @@ public class LANAnnouncer implements ModInitializer {
             try {
                 DatagramPacket packet = new DatagramPacket(message, message.length, address, 4445);
                 socket.send(packet);
+                if (lastExecutionFailed) {
+                    LOGGER.info("Successfully resumed broadcasting to {}", address.getCanonicalHostName());
+                    lastExecutionFailed = false;
+                }
+            } catch (SocketException e) {
+                if (!lastExecutionFailed) {
+                    LOGGER.error(
+                            "Error sending broadcast packet to {}: {}. This often happens in Docker when not using host networking.",
+                            address.getCanonicalHostName(), e.getMessage());
+                    lastExecutionFailed = true;
+                }
             } catch (IOException e) {
                 LOGGER.error("Error sending broadcast packet", e);
             }
