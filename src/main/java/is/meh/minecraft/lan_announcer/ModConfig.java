@@ -20,11 +20,17 @@ public class ModConfig {
         // Default values
     }
 
+    @SuppressWarnings("null")
     public static ModConfig load() {
         if (Files.exists(CONFIG_PATH)) {
             try {
                 String content = Files.readString(CONFIG_PATH);
-                return GSON.fromJson(content, ModConfig.class);
+                var config = GSON.fromJson(content, ModConfig.class);
+                if (config != null) {
+                    if (config.extraAddresses == null)
+                        config.extraAddresses = new ArrayList<>();
+                    return config;
+                }
             } catch (IOException e) {
                 LANAnnouncer.LOGGER.error("Failed to load config, using defaults", e);
             }
@@ -36,6 +42,7 @@ public class ModConfig {
 
     public void save() {
         try {
+            Files.createDirectories(CONFIG_PATH.getParent());
             Files.writeString(CONFIG_PATH, GSON.toJson(this));
         } catch (IOException e) {
             LANAnnouncer.LOGGER.error("Failed to save config", e);

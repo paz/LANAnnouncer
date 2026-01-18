@@ -23,15 +23,15 @@ public class LANAnnouncer implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        config = ModConfig.load();
         if (FabricLoader.getInstance().getEnvironmentType() == net.fabricmc.api.EnvType.SERVER) {
-            config = ModConfig.load();
             ServerLifecycleEvents.SERVER_STARTED.register(this::onServerStarted);
             ServerLifecycleEvents.SERVER_STOPPING.register(this::onServerStopping);
         } else {
             LOGGER.warn(
                     "This mod is only intended for dedicated multiplayer" +
                             " servers, not clients. Clients can start their own built-in" +
-                            " LAN broadcast by using `Open to LAN`");
+                            " LAN broadcast by using `Open to LAN` (Dedicated Server only feature will be disabled)");
         }
     }
 
